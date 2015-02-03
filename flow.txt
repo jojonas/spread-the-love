@@ -1,0 +1,14 @@
+-src.zip <== Projektsources + Assets 
+.love <== -src.zip
+
+love64 binary <== love64.zip (Internet)
+love32 binary <== love32.zip (Internet)
+
+love64 dlls <== love64.zip (Internet)
+love32 dlls <== love32.zip (Internet)
+
+Win64 binary <== .love + love64 binary  
+Win32 binary <== .love + love32 binary
+
+Win64 .zip <== Win64 binary + love64 dlls
+Win32 .zip <== Win32 binary + love32 dlls
