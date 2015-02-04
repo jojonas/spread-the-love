@@ -28,5 +28,26 @@ function getLove(version, environment)
 		local zip, unzip = findZipTool()
 		unzip(filename, destination)
 	end
+	return destination
 end
 
+function compileLove(config, destination)
+	local zip, unzip = findZipTool()
+	local files = filterDirectory(config.path, config.exclude)	
+	destination = absolutePath(destination) .. "/" .. config.name .. ".love"
+	removeFile(destination)
+	zip(destination, config.path, files)
+	return destination
+end
+
+function combineLove(executable, archive, destination) 
+	local os = detectOS()
+	if os == "windows" then
+		execute('copy /b "' .. executable:gsub("/", "\\") .. '"+"' .. archive:gsub("/", "\\") .. '" "' .. destination:gsub("/", "\\") .. '" > NUL')
+	elseif os == "linux" then
+		execute('cat "' .. executable .. '" "' .. archive .. '" > "' .. destination .. '" > /dev/null')
+	else
+		error("Cannot combine on this operating system.")
+	end
+	return destination
+end
