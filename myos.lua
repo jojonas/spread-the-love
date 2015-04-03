@@ -1,27 +1,19 @@
-function execute(cmd) 
+local myos = {}
+
+function myos.execute(cmd) 
 	-- print("EXEC: " .. cmd)
 	return os.execute('"' .. cmd .. '"') -- on windows, os.execute(cmd) = "cmd.exe /C " .. cmd
 end
 
-function detectOS()
-	if os.getenv("WINDIR") then 
-		return "windows" 
-	elseif os.getenv("OSTYPE") == "linux" then
-		return "linux"
-	else
-		return "unknown"
-	end
-end
-
-function tempDir()
+function myos.tempDir()
 	return os.getenv("TEMP") or os.getenv("TEMPDIR") or "/tmp"
 end
 
-function exists(name) 
+function myos.exists(name) 
 	return os.rename(name, name)
 end
 
-function fileExists(name) -- hacky!
+function myos.fileExists(name) -- hacky!
 	if type(name) ~= "string" then return false end
 	local f = io.open(name, "r")
 	if f~=nil then 
@@ -32,18 +24,18 @@ function fileExists(name) -- hacky!
 	end
 end
 
-function removeFile(name)
-	if detectOS() == "windows" then
-		execute('del "' .. name:gsub("/", "\\") .. '" > NUL 2>&1')
+function myos.removeFile(name)
+	if love.system.getOS() == "Windows" then
+		myos.execute('del "' .. name:gsub("/", "\\") .. '" > NUL 2>&1')
 	end
 end
 
-function folderExists(name) -- hacky!
-	return (exists(name) and not fileExists(name))
+function myos.folderExists(name) -- hacky!
+	return (myos.exists(name) and not myos.fileExists(name))
 end
 
-function absolutePath(directory)
-	if detectOS() == "windows" then
+function myos.absolutePath(directory)
+	if love.system.getOS() == "Windows" then
 		local cmd = "cd /D " .. '"' .. directory:gsub("/", "\\") .. '" & chdir'
 		return io.popen(cmd):read()
 	else
@@ -51,9 +43,9 @@ function absolutePath(directory)
 	end	
 end
 
-function recursiveListAllFilesInDirectory(directory) 
+function myos.recursiveListAllFilesInDirectory(directory) 
 	local list = {}
-	if detectOS() == "windows" then
+	if love.system.getOS() == "Windows" then
 		for name in io.popen("dir /A-D /B /S " .. '"' .. directory .. '"'):lines() do
 			list[#list+1] = name
 		end
@@ -62,3 +54,5 @@ function recursiveListAllFilesInDirectory(directory)
 	end	
 	return list
 end
+
+return myos

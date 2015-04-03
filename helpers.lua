@@ -1,23 +1,30 @@
-require "myos"
+local myos = require("myos")
+local http = require("socket.http")
+local ltn12 = require("ltn12")
 
 function findZipTool()
-	if detectOS() == "windows" then
+	if love.system.getOS() == "Windows" then
 		local programfiles = os.getenv("PROGRAMFILES"):gsub("\\", "/")
 		
 		local sevenzip = programfiles .. "/7-zip/7z.exe" 
-		if fileExists(sevenzip) then
+		if myos.fileExists(sevenzip) then
 			return function(archive, root, files) 
-				return (execute('cd "' .. root .. '" & "' .. sevenzip .. '"' .. " a -ssc -tzip -y -bd \"" .. archive .. "\" \"" .. table.concat(files, '" "') .. "\" > NUL") == 0)
+				return (myos.execute('cd "' .. root .. '" & "' .. sevenzip .. '"' .. " a -ssc -tzip -y -bd \"" .. archive .. "\" \"" .. table.concat(files, '" "') .. "\" > NUL") == 0)
 			end, function(archive, destination) 
-				return (execute('"' .. sevenzip .. '"' .. " e -y -bd -o\"" .. destination .. "\" \"" .. archive .. "\" > NUL") == 0)
+				return (myos.execute('"' .. sevenzip .. '"' .. " e -y -bd -o\"" .. destination .. "\" \"" .. archive .. "\" > NUL") == 0)
 			end
 		end
 	end
 	error("Could not find any zip utility.")
 end
 
-function curlGet(url, destination)
-	return ( os.execute("curl --silent --insecure --location --output " .. destination .. " " .. url) == 0 ) -- "insecure" does not check SSL certificates
+function httpGet(url, destination)
+	--local http  = require("socket.http")
+	--local xFile = io.open(destination, "w")
+	--local save = ltn12.sink.file(xFile)
+	--return (http.request{url = url, sink = save, redirect = true} ~= nil)
+	
+	return ( os.execute("curl --silent --insecure --location --output " .. destination .. " " .. url) ~= 0 ) -- "insecure" does not check SSL certificates
 end
 
 
@@ -49,8 +56,8 @@ end
 function filterDirectory(directory, exclude)
 	local results = {}
 	
-	local absroot = absolutePath(directory)
-	local list = recursiveListAllFilesInDirectory(directory)
+	local absroot = myos.absolutePath(directory)
+	local list = myos.recursiveListAllFilesInDirectory(directory)
 	for i=1,#list do
 		local name = list[i]:gsub("\\", "/")
 		local relative = name:sub(absroot:len()+1)
@@ -78,6 +85,8 @@ function filterDirectory(directory, exclude)
 		
 		if add then
 			results[#results+1] = relative:sub(2)
+		else
+			print("Skipping " .. relative)
 		end
 	end
 	return results
